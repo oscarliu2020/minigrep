@@ -78,21 +78,10 @@ pub fn run (config:Config)->Result<(),Box<dyn Error>>{
     Ok(())
 }
 pub fn search<'a> (qry:&str,contents:&'a str)->Vec<&'a str>{
-    let mut res:Vec<&'_ str>=Vec::new() ;
-    for line in contents.lines(){
-        if line.contains(qry) {
-            res.push(line);
-        }
-    }
-    res
+    contents.lines().filter(|line| line.contains(qry)).collect()
 }
 pub fn search_case_insensitive<'a>(qry:&str,contents:&'a str)->Vec<&'a str>{
     let qry=qry.to_lowercase();
-    let mut res=Vec::new();
-    for line in contents.lines(){
-        if line.to_lowercase().contains(&qry){
-            res.push(line);
-        }
-    }
-    res
+    contents.lines()
+    .filter(|line|{line.to_lowercase().contains(&qry)}).collect()
 }
