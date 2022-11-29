@@ -1,25 +1,27 @@
 use std::fs;
 use std::error::Error;
 use std::env;
-pub struct Config<'a>{
-    pub query:&'a String,
-    pub file_path:&'a String,
+pub struct Config{
+    pub query:String,
+    pub file_path:String,
     pub icase:bool
 }
-impl<'a> Config<'a> {
-    pub fn new (args:&'a [String],icase:bool)->Self{
-        if args.len()<3{
-            panic!("not enough arguments");
-        }
-        Self { query: &args[1], file_path: &args[2], icase }
-    }
-    pub fn build(args:&'a [String])->Result<Self,&'static str>{
-        if args.len()<3{
-            Err("not enough arguments")
-        }else{
-            let icase=env::var("IGNORE_CASE").is_ok();
-            Ok(Self::new(args,icase))
-        }
+impl Config {
+
+    pub fn build(mut  args:impl Iterator<Item=String> )->Result<Self,&'static str>{
+        args.next();
+        let query=match args.next(){
+            Some(arg)=>arg,
+            None=>return Err("Didn't get a query string.")
+        };
+        let file_path=match args.next(){
+            Some(arg)=>arg,
+            None=>return Err("Didn't get a file path.")
+        };
+        let icase=env::var("IGNORE_CASE").is_ok();
+        Ok(
+            Self { query, file_path, icase}
+        )
     }
 }
 #[cfg(test)]
@@ -28,15 +30,15 @@ mod tests{
     #[test]
     fn test_build(){
         let args=["test".to_string(),"test".to_string()];
-        let q=Config::build(&args);
+        let q=Config::build(args.into_iter());
         assert!(q.is_err());
     }
     #[test]
     fn test_config(){
         let args=["exe".to_string(),"test".to_string(),"test".to_string()];
-        let q=Config::build(&args).unwrap();
-        assert_eq! (q.file_path,&args[2]);
-        assert_eq!(q.query,&args[1]);
+        let q=Config::build(args.clone().into_iter()).unwrap();
+        assert_eq! (q.file_path,args[2]);
+        assert_eq!(q.query,args[1]);
     }
     #[test]
     fn test_search() {
